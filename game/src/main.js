@@ -43,21 +43,21 @@ function init() {
   G.renderer = renderer;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(PAL.sky);
-  scene.fog = new THREE.Fog(PAL.fog, 220, 620);
+  scene.background = new THREE.Color(0xff8a4a); // sunset fallback (the sky dome covers it)
+  scene.fog = new THREE.Fog(PAL.fog, 180, 560); // warm haze — the city fades into sunset
   G.scene = scene;
   const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 900);
   camera.position.set(0, 40, 80); G.camera = camera;
 
-  // Sun + sky light (angle follows the in-game clock).
-  const sun = new THREE.DirectionalLight(PAL.sun, 2.6);
+  // Golden-hour sun: low, warm, from the west — long shadows toward the sea.
+  const sun = new THREE.DirectionalLight(PAL.sun, 2.9);
   sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024); // 1024 keeps SwiftShader playtests usable; still crisp on GPU
   sun.shadow.camera.left = -160; sun.shadow.camera.right = 160;
   sun.shadow.camera.top = 160; sun.shadow.camera.bottom = -160;
   sun.shadow.camera.far = 600; sun.shadow.bias = -0.0004;
   scene.add(sun); G.sun = sun;
-  scene.add(new THREE.HemisphereLight(0xbfd9ff, 0x8a7a5a, 1.1));
+  scene.add(new THREE.HemisphereLight(0xffd9a0, 0x6a4a3a, 1.0)); // warm sky bounce
 
   const city = buildCity(scene, rng);
   G.city = city; G.colliders = city.colliders;
@@ -152,10 +152,11 @@ function update(dt) {
   G.progression.update(dt, G);
   G.effects.update(dt);
 
-  // sun follows the clock: morning east -> noon high -> evening west
+  // sun follows the clock but stays LOW and warm: golden hour all game long.
+  // At 17:40 the sun sits west-southwest, ~45 up — long shadows, warm facades.
   const t = (G.clockMinutes / CFG.dayMinutes) * Math.PI * 2 - Math.PI / 2;
   const sun = G.sun;
-  sun.position.set(Math.cos(t) * 200, 90 + Math.sin(t) * 120, 120);
+  sun.position.set(p.x + Math.cos(t) * 220, 42 + Math.max(0, Math.sin(t)) * 60, p.z + 90);
   sun.target.position.set(p.x, 0, p.z);
   sun.target.updateMatrixWorld();
 
@@ -266,9 +267,10 @@ function update(dt) {
     G.state = 'over'; G.hud.showWasted(); saveGame(G);
   }
 
-  // --- camera ---
+  // --- camera: LOW chase cam (like the top entries) — close behind the car,
+  // looking slightly up the road so the beach + sunset fill the frame.
   const target = p.car ? p.car : p;
-  const dist = p.car ? 11 : 8, height = p.car ? 4.6 : 3.6;
+  const dist = p.car ? 9.5 : 8, height = p.car ? 3.4 : 3.4;
   const cx = target.x - Math.sin(G.camHeading) * dist;
   const cz = target.z - Math.cos(G.camHeading) * dist;
   const cam = G.camera;

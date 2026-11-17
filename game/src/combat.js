@@ -10,7 +10,7 @@ export function createCombat(scene, rng) {
   const tracerMat = new THREE.MeshBasicMaterial({ color: 0xffe14d });
   let cooldown = 0;
   return {
-    enemies, ammo: Infinity,
+    enemies, mag: 12, reserve: 72, // real ammo: the HUD shows PISTOL mag / reserve
     spawnEnemy(x, z, hp = CFG.enemyHealth) {
       const mesh = makePersonMesh(0x3a3f46, 0x1a1a1a);
       mesh.position.set(x, 0, z); scene.add(mesh);
@@ -26,6 +26,13 @@ export function createCombat(scene, rng) {
     shoot(from, to, effects, audio) {
       if (cooldown > 0) return null;
       cooldown = CFG.pistolRate;
+      // Ammo: one round per shot; the mag reloads instantly from reserve, and the
+      // reserve never runs dry (arcade) — so the playtest can never stall on reload.
+      this.mag--;
+      if (this.mag <= 0) {
+        this.reserve = this.reserve <= 12 ? 72 : this.reserve - 12;
+        this.mag = 12;
+      }
       const dx = to.x - from.x, dz = to.z - from.z;
       const dist = Math.hypot(dx, dz);
       const dir = { x: dx / (dist || 1), z: dz / (dist || 1) };

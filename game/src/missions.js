@@ -4,33 +4,41 @@ import { PLACES } from './config.js';
 
 export const MISSIONS = [
   { id: 'homecoming', title: '1 — Homecoming', reward: 200,
+    line: "Rico: Five years away. The garage is still standing. Barely.",
     brief: "Rico's back in Costa Alba after five years away. His father's garage, Vela Motors, is all that's left — and Don Salazar owns the debt on it. Drive to the garage and take stock.",
     steps: [{ type: 'goto', x: PLACES.garage.x, z: PLACES.garage.z + 16, r: 12, text: 'Drive to Vela Motors' }] }, // garage door (the building centre is inside its collider)
   { id: 'firstfare', title: '2 — First Fare', reward: 350,
+    line: "Rico: A fare at Marina Bay. Easy money — don't scratch the paint.",
     brief: "The garage needs cash today, not tomorrow. A tourist at Marina Bay needs a ride downtown. Pick them up, drop them off, and don't scratch the paint.",
     steps: [
       { type: 'goto', x: 30, z: 180, r: 8, text: 'Pick up the passenger at Marina Bay' },
       { type: 'goto', x: 0, z: 0, r: 12, text: 'Drop the passenger in Downtown' },
     ] },
   { id: 'pickup', title: '3 — The Pickup', reward: 400,
+    line: "Rico: A crate at the docks, no questions. Just drive.",
     brief: "A crate came in at the Old Harbor docks with Rico's name on it — no questions, just drive it back. Salazar's boys watch the docks, so keep it smooth.",
     steps: [{ type: 'goto', x: PLACES.harbor.x, z: PLACES.harbor.z, r: 10, text: 'Collect the crate at Old Harbor' }] },
   { id: 'hotwheels', title: '4 — Hot Wheels', reward: 600,
+    line: "Rico: Salazar's nephew parks his Comet like he owns the street. Not anymore.",
     brief: "Salazar's nephew parks his Comet GT downtown like he owns the street. Take it. Bring it to the garage. The cops will notice — that's the point.",
     steps: [
       { type: 'steal', carId: 'comet', x: 30, z: -60, text: 'Steal the yellow Comet GT downtown' }, // street z=-60 — (30,-30) is a block centre (building)
       { type: 'goto', x: PLACES.garage.x, z: PLACES.garage.z + 16, r: 12, text: 'Bring the Comet to Vela Motors' },
     ] },
   { id: 'heatwave', title: '5 — Heat Wave', reward: 500,
+    line: "Rico: Three stars? Salazar's really flattering me now.",
     brief: "Three stars and every cruiser in Costa Alba on your tail. Salazar wants to see if Rico can drive. Lose them — all of them — and come home clean.",
     steps: [{ type: 'evade', stars: 3, text: 'Lose the 3-star wanted level' }] },
   { id: 'exchange', title: '6 — The Exchange', reward: 800,
+    line: "Rico: Four of Salazar's boys. Let's settle this loud.",
     brief: "Salazar's collectors are shaking down the Market Quarter. Rico's had enough. Settle it the loud way — four of them, in the market square.",
     steps: [{ type: 'fight', count: 4, x: PLACES.market.x, z: PLACES.market.z, text: 'Deal with 4 of Salazar\'s men' }] },
   { id: 'heist', title: '7 — Harbor Heist', reward: 1200,
+    line: "Rico: Three crates. In and out before the harbor patrol wakes up.",
     brief: "Salazar's cargo sits in the harbor warehouse, guarded and worth a fortune. Three crates, in and out. The harbor patrol won't make it easy.",
     steps: [{ type: 'collect', count: 3, x: PLACES.harbor.x, z: PLACES.harbor.z, text: 'Grab 3 cargo crates at the harbor' }] },
   { id: 'king', title: '8 — King of Costa Alba', reward: 2500,
+    line: "Rico: It ends tonight. The villa, the Don — all of it.",
     brief: "It ends tonight at Salazar's villa. Six of his best men between Rico and the Don. Finish it, shake the heat, and Costa Alba is Rico's.",
     steps: [
       { type: 'fight', count: 6, x: PLACES.villa.x, z: PLACES.villa.z + 18, text: "Take down 6 of Salazar's guards" }, // villa door (the centre is inside its collider)

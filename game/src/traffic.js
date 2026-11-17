@@ -12,9 +12,13 @@ export function createTraffic(scene, city, rng, colliders) {
     { id: 't1', name: 'Sedan', kind: 'sedan', color: 0x2e6fd2, price: 0, top: 16, accel: 10 },
     { id: 't2', name: 'Hatch', kind: 'sedan', color: 0xe8e8e8, price: 0, top: 15, accel: 10 },
     { id: 't3', name: 'Van', kind: 'truck', color: 0x8a4fd2, price: 0, top: 14, accel: 9 },
+    { id: 't4', name: 'Coupe', kind: 'sport', color: 0xd23b2e, price: 0, top: 17, accel: 11 },
+    { id: 't5', name: 'Taxi', kind: 'taxi', color: 0xf2c230, price: 0, top: 16, accel: 10 },
+    { id: 't6', name: 'SUV', kind: 'sedan', color: 0x27a35c, price: 0, top: 15, accel: 10 },
   ];
   // Traffic cars: pick a street, drive along it, turn at intersections, loop.
-  for (let i = 0; i < 14; i++) {
+  // 22 cars (v1: 14) — the beachfront must read busy, not empty.
+  for (let i = 0; i < 22; i++) {
     const def = rng.pick(defs);
     const axis = rng.chance(0.5) ? 'x' : 'z';
     const at = rng.pick(streets);
@@ -26,16 +30,33 @@ export function createTraffic(scene, city, rng, colliders) {
     car.wait = 0;
     scene.add(car.mesh); cars.push(car);
   }
-  // Pedestrians: capsule people walking the sidewalks.
-  const pedGeo = new THREE.CapsuleGeometry(0.45, 1.0, 3, 8);
-  const pedColors = [0xd23b2e, 0x2e6fd2, 0xf2c230, 0x27a35c, 0x8a4fd2, 0xe07b39, 0xe8e8e8];
-  for (let i = 0; i < 22; i++) {
-    const mesh = new THREE.Mesh(pedGeo, new THREE.MeshLambertMaterial({ color: rng.pick(pedColors) }));
-    const x = rng.range(-220, 220), z = rng.range(-220, 190);
-    mesh.position.set(x, 1.0, z); mesh.castShadow = true; scene.add(mesh);
+  // Pedestrians: real little people (legs + torso + head, varied shirts) — v1's
+  // plain capsules read as pills. 36 of them; a third are beachgoers on the sand.
+  const legGeo = new THREE.BoxGeometry(0.5, 0.9, 0.32);
+  const torsoGeo = new THREE.BoxGeometry(0.66, 0.8, 0.38);
+  const headGeo = new THREE.SphereGeometry(0.3, 10, 8);
+  const skinMat = new THREE.MeshLambertMaterial({ color: 0xe8b88a });
+  const skinMat2 = new THREE.MeshLambertMaterial({ color: 0xc98d5f });
+  const pedColors = [0xd23b2e, 0x2e6fd2, 0xf2c230, 0x27a35c, 0x8a4fd2, 0xe07b39, 0xe8e8e8, 0x1e6f8e];
+  function makePedMesh(shirt, skin) {
+    const g = new THREE.Group();
+    const legs = new THREE.Mesh(legGeo, new THREE.MeshLambertMaterial({ color: 0x222831 }));
+    legs.position.y = 0.45; legs.castShadow = true; g.add(legs);
+    const torso = new THREE.Mesh(torsoGeo, new THREE.MeshLambertMaterial({ color: shirt }));
+    torso.position.y = 1.3; torso.castShadow = true; g.add(torso);
+    const head = new THREE.Mesh(headGeo, skin);
+    head.position.y = 1.95; head.castShadow = true; g.add(head);
+    return g;
+  }
+  for (let i = 0; i < 36; i++) {
+    const onBeach = i >= 24; // last 12 stroll the sand
+    const mesh = makePedMesh(rng.pick(pedColors), rng.chance(0.5) ? skinMat : skinMat2);
+    const x = onBeach ? rng.range(-210, 210) : rng.range(-220, 220);
+    const z = onBeach ? rng.range(200, 230) : rng.range(-220, 190);
+    mesh.position.set(x, 0, z); mesh.castShadow = true; scene.add(mesh);
     peds.push({
       mesh, x, z, heading: rng.range(0, Math.PI * 2), speed: rng.range(1.2, 2.4),
-      panic: 0, alive: true, wait: rng.range(0, 3),
+      panic: 0, alive: true, wait: rng.range(0, 3), beach: onBeach,
     });
   }
   function nearestRoad(x, z) {
@@ -99,15 +120,20 @@ export function createTraffic(scene, city, rng, colliders) {
         const sp = p.panic > 0 ? 5.5 : p.speed;
         p.x += Math.sin(p.heading) * sp * dt;
         p.z += Math.cos(p.heading) * sp * dt;
-        if (Math.abs(p.x) > 235 || Math.abs(p.z) > 235 || p.z > 205) p.heading += Math.PI * 0.7;
+        // Beachgoers stay on the sand (z 198..232); street peds stay in the city.
+        if (p.beach) {
+          if (Math.abs(p.x) > 225 || p.z < 198 || p.z > 232) p.heading += Math.PI * 0.7;
+        } else if (Math.abs(p.x) > 235 || Math.abs(p.z) > 235 || p.z > 195) p.heading += Math.PI * 0.7;
         if (rng.chance(dt * 0.08)) p.heading += rng.range(-1.2, 1.2);
-        // keep on sidewalks: snap near a road line
-        const r = nearestRoad(p.x, p.z);
-        if (r) {
-          if (r.axis === 'x') p.z += Math.max(-1, Math.min(1, (r.at + 9 - p.z))) * dt * 0.5;
-          else p.x += Math.max(-1, Math.min(1, (r.at + 9 - p.x))) * dt * 0.5;
+        // keep street peds on sidewalks: snap near a road line (beachgoers roam free)
+        if (!p.beach) {
+          const r = nearestRoad(p.x, p.z);
+          if (r) {
+            if (r.axis === 'x') p.z += Math.max(-1, Math.min(1, (r.at + 9 - p.z))) * dt * 0.5;
+            else p.x += Math.max(-1, Math.min(1, (r.at + 9 - p.x))) * dt * 0.5;
+          }
         }
-        p.mesh.position.set(p.x, 1.0 + Math.abs(Math.sin(time * 6 + p.x)) * 0.08, p.z);
+        p.mesh.position.set(p.x, Math.abs(Math.sin(time * 6 + p.x)) * 0.08, p.z);
         p.mesh.rotation.y = p.heading;
       }
     },

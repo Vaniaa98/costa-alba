@@ -1,13 +1,36 @@
 // Wanted system 0-5 stars + police cars + foot cops that chase and arrest.
 import * as THREE from 'three';
 import { CFG, CARS } from './config.js';
-import { createCar } from './vehicles.js';
+import { createCar, makeHelicopter } from './vehicles.js';
 import { makePersonMesh } from './player.js';
 
 export function createPolice(scene, rng, colliders) {
   return {
-    wanted: 0, lastCrime: -999, cars: [], cops: [],
+    wanted: 0, lastCrime: -999, cars: [], cops: [], heli: null,
     spawnTimer: 0,
+    // Light bar: both colours stay lit (a still frame shows red AND blue);
+    // the glow halos pulse alternately so it flashes in motion.
+    flashLights(time) {
+      const phase = Math.floor(time * 4) % 2 === 0;
+      for (const car of this.cars) {
+        const lb = car.mesh.userData.lightBar;
+        if (!lb) continue;
+        lb.redGlow.material.opacity = phase ? 0.95 : 0.35;
+        lb.blueGlow.material.opacity = phase ? 0.35 : 0.95;
+      }
+    },
+    spawnHeli(player) {
+      if (this.heli) return this.heli;
+      const mesh = makeHelicopter();
+      scene.add(mesh);
+      this.heli = { mesh, x: player.x + 18, z: player.z - 30, y: 26, heading: 0 };
+      return this.heli;
+    },
+    removeHeli() {
+      if (!this.heli) return;
+      scene.remove(this.heli.mesh);
+      this.heli = null;
+    },
     addWanted(n, time) {
       this.wanted = Math.min(5, this.wanted + n);
       this.lastCrime = time;
@@ -31,6 +54,22 @@ export function createPolice(scene, rng, colliders) {
       if (this.wanted > 0 && time - this.lastCrime > CFG.wantedDecay) {
         this.wanted--; this.lastCrime = time;
       }
+      this.flashLights(time);
+      // Helicopter overhead at 3+ stars (the GTA signature) — hovers above the
+      // player, rotor spinning, searchlight sweeping. Gone when the heat is off.
+      const px0 = player.car ? player.car.x : player.x;
+      const pz0 = player.car ? player.car.z : player.z;
+      if (this.wanted >= 3) {
+        const h = this.spawnHeli(player);
+        h.heading += dt * 0.25;
+        h.x += ((px0 + 16) - h.x) * Math.min(1, dt * 0.7);
+        h.z += ((pz0 - 26) - h.z) * Math.min(1, dt * 0.7);
+        h.y = 26 + Math.sin(time * 1.4) * 1.5;
+        h.mesh.position.set(h.x, h.y, h.z);
+        h.mesh.rotation.y = h.heading;
+        h.mesh.userData.rotor.rotation.y += dt * 22;
+        h.mesh.userData.tailRotor.rotation.x += dt * 30;
+      } else if (this.heli) this.removeHeli();
       // desired force scales with stars
       const wantCars = this.wanted === 0 ? 0 : this.wanted <= 1 ? 1 : this.wanted <= 2 ? 2 : this.wanted <= 3 ? 2 : this.wanted <= 4 ? 3 : 4;
       const wantCops = this.wanted <= 2 ? 0 : this.wanted <= 3 ? 1 : this.wanted <= 4 ? 2 : 3;

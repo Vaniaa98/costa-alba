@@ -24,10 +24,14 @@ export function createMinimap() {
         const [x3, y3] = toMap(-half, v), [x4, y4] = toMap(half, v);
         g.beginPath(); g.moveTo(x3, y3); g.lineTo(x4, y4); g.stroke();
       }
-      // blocks
-      g.fillStyle = 'rgba(120,140,110,0.5)';
+      // blocks — coloured by district (like a real city map, not a grey grid)
       for (let x = -half + 30; x < half; x += 60) for (let z = -half + 30; z < 170; z += 60) {
-        const [bx, bz] = toMap(x, z); g.fillRect(bx - 8, bz - 8, 16, 16);
+        const [bx, bz] = toMap(x, z);
+        let col = 'rgba(120,140,110,0.5)';
+        if (z > 130) col = 'rgba(232,201,138,0.65)'; // beachfront sand
+        else if (x < -80 && z < 60) col = 'rgba(224,168,120,0.55)'; // market
+        else if (Math.abs(x) < 110 && Math.abs(z) < 100) col = 'rgba(184,196,201,0.55)'; // downtown
+        g.fillStyle = col; g.fillRect(bx - 8, bz - 8, 16, 16);
       }
       const dot = (x, z, color, r = 3) => { const [mx, my] = toMap(x, z); g.fillStyle = color; g.beginPath(); g.arc(mx, my, r, 0, 7); g.fill(); };
       // mission / activity target

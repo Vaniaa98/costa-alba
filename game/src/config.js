@@ -22,32 +22,38 @@ export const CFG = {
   // economy
   startMoney: 500, taxiFare: [60, 160], deliveryPay: [120, 220], packagePay: 100,
   repairCost: 80,
-  // time
-  dayMinutes: 24 * 60, clockStart: 9 * 60 + 30,
+  // time — the game lives at golden hour (sunset), like the whole look.
+  dayMinutes: 24 * 60, clockStart: 17 * 60 + 40,
 };
 
 export const PAL = {
-  sky: 0x8ec9ee, sun: 0xfff2cf, fog: 0xa8d4e8,
-  sand: 0xe8d29a, sea: 0x2e7fa8, seaDeep: 0x1b5f8a,
-  asphalt: 0x3a3f46, asphalt2: 0x454b54, line: 0xf5d76e,
-  sidewalkCol: 0xb8b0a0, grass: 0x7fae5a,
+  // Golden hour: the whole game lives at sunset. Sky is a gradient dome (city.js),
+  // these are the fog / light / ground tones that sell the warm light.
+  sky: 0xff9a5c, sun: 0xffb36b, fog: 0xe89a6a,
+  sand: 0xe8c98a, sea: 0x2e6f9e, seaDeep: 0x1b4f7a,
+  asphalt: 0x33373e, asphalt2: 0x3d424b, line: 0xf5d76e,
+  sidewalkCol: 0xb8a88e, grass: 0x6f9e52,
   building: [0xe8dcc8, 0xd9c4a5, 0xc9b8a3, 0xf2e6d0, 0xb8c4c9, 0xe0a878, 0xd98c6a, 0x9fb8a8],
-  glass: 0x9fd4e8, roof: 0x8a5a44,
-  palmTrunk: 0x7a5a3a, palmLeaf: 0x3f9e4d,
+  glass: 0xffd9a0, roof: 0x6a4a3a,
+  palmTrunk: 0x7a5a3a, palmLeaf: 0x2f8e44,
   car: [0xd23b2e, 0x2e6fd2, 0xf2c230, 0x27a35c, 0x8a4fd2, 0xe8e8e8, 0x222831, 0xe07b39],
-  police: 0x1a2a4a, policeLight: [0xff2222, 0x2266ff],
+  police: 0xeef2f2, policeLight: [0xff2222, 0x2266ff],
   marker: 0xffd23b, markerBad: 0xff4444, beacon: 0xffe14d,
 };
 
 // Districts: name, center, half-size, flavour (drives building heights / colours).
+// tag = the banner line the HUD shows when the player is here (like a GTA district card).
 export const DISTRICTS = [
-  { name: 'Old Harbor', cx: -150, cz: 150, hw: 85, hd: 55, h: [8, 18], col: 0xd9c4a5 },
-  { name: 'Marina Bay', cx: 0, cz: 165, hw: 120, hd: 40, h: [6, 14], col: 0xf2e6d0 },
-  { name: 'Downtown', cx: 0, cz: 0, hw: 110, hd: 100, h: [18, 55], col: 0xb8c4c9 },
-  { name: 'Market Quarter', cx: -150, cz: -30, hw: 80, hd: 90, h: [8, 22], col: 0xe0a878 },
-  { name: 'Hillside', cx: 150, cz: -120, hw: 85, hd: 100, h: [10, 26], col: 0x9fb8a8 },
-  { name: 'Palm Row', cx: 150, cz: 120, hw: 80, hd: 70, h: [6, 16], col: 0xe8dcc8 },
+  { name: 'Old Harbor', cx: -150, cz: 150, hw: 85, hd: 55, h: [8, 18], col: 0xd9c4a5, tag: 'DOCKS' },
+  { name: 'Marina Bay', cx: 0, cz: 165, hw: 120, hd: 40, h: [6, 14], col: 0xf2e6d0, tag: 'BEACHFRONT' },
+  { name: 'Downtown', cx: 0, cz: 0, hw: 110, hd: 100, h: [18, 55], col: 0xb8c4c9, tag: 'CITY CENTER' },
+  { name: 'Market Quarter', cx: -150, cz: -30, hw: 80, hd: 90, h: [8, 22], col: 0xe0a878, tag: 'OLD TOWN' },
+  { name: 'Hillside', cx: 150, cz: -120, hw: 85, hd: 100, h: [10, 26], col: 0x9fb8a8, tag: 'THE HILLS' },
+  { name: 'Palm Row', cx: 150, cz: 120, hw: 80, hd: 70, h: [6, 16], col: 0xe8dcc8, tag: 'BEACHFRONT HOTELS' },
 ];
+
+// Radio: the station the synth music pretends to be (HUD shows it; audio.js plays the loop).
+export const RADIO = { station: 'ALBA FM 98.4', track: 'Sol de Verano — Los Marineros' };
 
 // Cars the player can own / find. kind: sedan | sport | truck | taxi | police.
 export const CARS = [
